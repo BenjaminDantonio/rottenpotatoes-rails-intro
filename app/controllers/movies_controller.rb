@@ -10,12 +10,25 @@ class MoviesController < ApplicationController
     # will render app/views/movies/show.<extension> by default
   end
 
+  #def index
+  #  @movies = Movie.all
+  #end
+  
   def index
-    @movies = Movie.all
+    if params[:sort] == nil
+      @movies = Movie.all
+    else
+      @movies = Movie.order(params[:sort] + " " + params[:direction])
+      if params[:sort] == 'title'
+        @title_header = 'hilite'
+      elsif params[:sort] == 'release_date'
+        @release_header ='hilite'
+      end
+    end
   end
 
   def new
-    # default: render 'new' template
+    # default: render 'new' template | Ben: This is done by default, I guess because of Ruby convention
   end
 
   def create
