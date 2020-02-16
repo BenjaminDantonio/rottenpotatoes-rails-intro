@@ -15,9 +15,15 @@ class MoviesController < ApplicationController
   #end
   
   def index
-    if params[:sort] == nil
-      @movies = Movie.all
+    self.allRatings
+    if !params.has_key?(:ratings)
+        @movies = Movies.all
+        @current_ratings = Movie.ratings
     else
+        @current_ratings = params[:ratings]
+        self.filterRatings(@current_ratings)
+    end
+    if params.has_key?(:sort)
       @movies = Movie.order(params[:sort] + " " + params[:direction])
       if params[:sort] == 'title'
         @title_header = 'hilite'
@@ -27,6 +33,15 @@ class MoviesController < ApplicationController
     end
   end
 
+  def allRatings
+    @all_ratings = Movie.ratings
+  end
+  
+  def filterRatings(ratings)
+    displayedRatings = ratings.keys
+    @movies = Movie.with_ratings(displayedRatings)
+  end
+  
   def new
     # default: render 'new' template | Ben: This is done by default, I guess because of Ruby convention
   end
