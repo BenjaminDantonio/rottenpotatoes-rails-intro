@@ -1,6 +1,10 @@
 class Movie < ActiveRecord::Base
   def self.ratings
-    ['G','PG','PG-13','R','NC-17']
+  	ratings = {}
+  	self.select(:rating).uniq.each do |movie|
+  		ratings[movie.rating] = 1
+  	end
+  	ratings
   end
   
   def self.with_ratings(ratings)

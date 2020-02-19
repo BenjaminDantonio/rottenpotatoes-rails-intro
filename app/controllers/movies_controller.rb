@@ -16,30 +16,47 @@ class MoviesController < ApplicationController
   
   def index
     self.allRatings
-    if !params.has_key?(:ratings)
-        @movies = Movies.all
-        @current_ratings = Movie.ratings
-    else
-        @current_ratings = params[:ratings]
-        self.filterRatings(@current_ratings)
+    if(!params.has_key?(:sort) && !params.has_key?(:direction) && !params.has_key?(:ratings))
+      if(session.has_key?(:sort) || session.has_key?(:direction) || session.has_key?(:ratings))
+        redirect_to movies_path(:sort=>session[:sort], :direction=>session[:direction], :ratings=>session[:ratings])
+      end
     end
-    if params.has_key?(:sort)
-      @movies = Movie.order(params[:sort] + " " + params[:direction])
-      if params[:sort] == 'title'
+    @sort_item = params.has_key?(:sort) ? (session[:sort] = params[:sort]) : session[:sort]
+    @sort_direction = params.has_key?(:direction) ? (session[:direction] = params[:direction]) : session[:direction]
+    if !params.has_key?(:ratings)
+      if (!params.has_key?(:commit) && !params.has_key?(:sort)&& !params.has_key?(:direction))
+        @current_ratings = Movie.ratings.keys
+        session[:ratings] = Movie.ratings
+      else
+        @current_ratings = session[:ratings].keys
+      end
+    else
+      session[:ratings] = params[:ratings]
+      @current_ratings = params[:ratings].keys
+      self.filterMovies
+    end
+    if session.has_key?(:sort)
+      self.filterMovies
+      if session[:sort] == 'title'
         @title_header = 'hilite'
-      elsif params[:sort] == 'release_date'
+      elsif session[:sort] == 'release_date'
         @release_header ='hilite'
       end
     end
+    self.filterMovies
   end
 
   def allRatings
-    @all_ratings = Movie.ratings
+    @all_ratings = Movie.ratings.keys
   end
   
-  def filterRatings(ratings)
-    displayedRatings = ratings.keys
-    @movies = Movie.with_ratings(displayedRatings)
+  def filterMovies
+    displayedRatings = session[:ratings].keys
+    if @sort_item != nil
+      @movies = Movie.order(@sort_item + " " + @sort_direction).with_ratings(@current_ratings)
+    else
+      @movies = Movie.with_ratings(@current_ratings)
+    end
   end
   
   def new
